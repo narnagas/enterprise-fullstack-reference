@@ -26,6 +26,14 @@
             "development": { "buildTarget": "enterprise-reference:build" }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "tsConfig": "tsconfig.spec.json",
+            "polyfills": ["zone.js", "zone.js/testing"],
+            "styles": ["src/styles.scss"]
+          }
         }
       }
     }
