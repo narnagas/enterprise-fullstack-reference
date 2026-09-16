@@ -112,6 +112,7 @@ describe('ProjectEditorComponent', () => {
   it('cancel restores the last loaded project values', () => {
     loadProject();
     component.form.patchValue({ name: 'Unsaved Name', status: 'On Hold' });
+    component.form.markAsDirty();
     expect(component.form.dirty).toBeTrue();
 
     component.cancel();
