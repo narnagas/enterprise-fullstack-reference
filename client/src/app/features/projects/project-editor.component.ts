@@ -22,13 +22,7 @@ export class ProjectEditorComponent {
 
   @Output() readonly saved = new EventEmitter<ProjectDetail>();
 
-  readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(150)]],
-    customerName: ['', [Validators.required, Validators.maxLength(150)]],
-    status: ['', [Validators.required, Validators.maxLength(50)]],
-    dueDate: [''],
-    isActive: [true]
-  });
+  readonly form;
 
   @Input()
   set projectId(value: number | null) {
@@ -41,7 +35,15 @@ export class ProjectEditorComponent {
     private readonly fb: FormBuilder,
     private readonly projectService: ProjectService,
     private readonly cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.form = this.fb.nonNullable.group({
+      name: ['', [Validators.required, Validators.maxLength(150)]],
+      customerName: ['', [Validators.required, Validators.maxLength(150)]],
+      status: ['', [Validators.required, Validators.maxLength(50)]],
+      dueDate: [''],
+      isActive: [true]
+    });
+  }
 
   save(): void {
     if (!this.project || this.form.invalid || this.saving) {
