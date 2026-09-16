@@ -21,24 +21,24 @@ public sealed class ProjectSearchService(ApplicationDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var search = request.Search.Trim();
+            var search = request.Search.Trim().ToLower();
 
             query = query.Where(x =>
-                x.ProjectNumber.Contains(search) ||
-                x.Name.Contains(search) ||
-                x.CustomerName.Contains(search));
+                x.ProjectNumber.ToLower().Contains(search) ||
+                x.Name.ToLower().Contains(search) ||
+                x.CustomerName.ToLower().Contains(search));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Customer))
         {
-            var customer = request.Customer.Trim();
-            query = query.Where(x => x.CustomerName.Contains(customer));
+            var customer = request.Customer.Trim().ToLower();
+            query = query.Where(x => x.CustomerName.ToLower().Contains(customer));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
-            var status = request.Status.Trim();
-            query = query.Where(x => x.Status == status);
+            var status = request.Status.Trim().ToLower();
+            query = query.Where(x => x.Status.ToLower() == status);
         }
 
         if (request.IsActive.HasValue)
