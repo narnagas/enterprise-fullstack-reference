@@ -21,10 +21,10 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IProjectSearchService, ProjectSearchService>();
+builder.Services.AddScoped<IProjectEditorService, ProjectEditorService>();
 
 var app = builder.Build();
 
