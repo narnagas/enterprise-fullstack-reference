@@ -4,8 +4,21 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string LocalClientPolicy = "LocalAngularClient";
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(LocalClientPolicy, policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
@@ -16,6 +29,7 @@ builder.Services.AddScoped<IProjectSearchService, ProjectSearchService>();
 var app = builder.Build();
 
 app.UseHttpsRedirection();
+app.UseCors(LocalClientPolicy);
 app.MapControllers();
 
 app.Run();

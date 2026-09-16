@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { PagedResponse } from '../../core/models/paged-response';
 import { ProjectSearchRequest, ProjectSummary } from './project.models';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
-  private readonly apiUrl = 'https://localhost:7001/api/projects';
+  private readonly apiUrl = `${environment.apiUrl}/projects`;
 
   constructor(private readonly http: HttpClient) {}
 
