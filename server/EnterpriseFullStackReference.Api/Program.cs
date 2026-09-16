@@ -13,10 +13,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(LocalClientPolicy, policy =>
     {
-        policy
-            .WithOrigins("http://localhost:4200")
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod();
     });
 });
 
@@ -25,6 +22,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddScoped<IProjectSearchService, ProjectSearchService>();
 builder.Services.AddScoped<IProjectEditorService, ProjectEditorService>();
+builder.Services.AddScoped<ICustomerSearchService, CustomerSearchService>();
 
 var app = builder.Build();
 
