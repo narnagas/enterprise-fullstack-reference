@@ -39,44 +39,73 @@ enterprise-fullstack-reference/
 +-- database/     SQL Server schema and sample scripts
 +-- docs/         Architecture and engineering documentation
 +-- samples/      Example API requests and sanitized sample data
++-- .github/      CI workflow
 +-- .gitignore
 +-- LICENSE
 +-- README.md
 ```
 
-## Planned Capabilities
+## Implemented Capabilities
 
-- Angular standalone application architecture
-- ASP.NET Core REST APIs
+- Angular 19 standalone application architecture
+- Typed Angular HTTP services and reactive forms
+- AG Grid project search interface
+- ASP.NET Core / .NET 9 REST APIs
 - Entity Framework Core data access
-- SQL Server persistence
+- SQL Server persistence and sample scripts
 - Server-side pagination, filtering, and sorting
-- Project and customer search workflows
+- Project search and project editing workflows
 - DTO-based API contracts
 - Dependency injection and service-layer separation
-- Validation and consistent API error handling
+- Client and server validation
+- Loading, save, cancel, and API error states
+- Automated Angular and .NET tests
+- GitHub Actions CI using Node 24 and .NET 9
+
+## Current Reference Features
+
+### Project Search
+
+The Project Search workflow demonstrates a scalable enterprise search pattern:
+
+1. Angular search and AG Grid presentation.
+2. A typed `ProjectSearchRequest` contract.
+3. `POST /api/projects/search`.
+4. A testable `ProjectSearchService` responsible for query composition.
+5. EF Core filtering, sorting, and server-side pagination.
+6. SQL Server persistence.
+7. A typed `PagedResponse<ProjectSummaryDto>` returned to the client.
+
+### Project Editor
+
+Selecting a project from the search grid opens a standalone Angular reactive-form editor. The editor demonstrates:
+
+1. `GET /api/projects/{id}` for loading project details.
+2. A typed `ProjectDetailDto` / `ProjectDetail` contract across the API boundary.
+3. Required-field and maximum-length validation.
+4. Explicit Save and Cancel behavior.
+5. `PUT /api/projects/{id}` with a typed `UpdateProjectRequest`.
+6. Persistence through a dedicated `ProjectEditorService` and EF Core.
+7. Loading, success, validation, and API failure states.
+8. Refreshing the search grid after a successful update.
+
+The implementation remains intentionally generic so the architectural patterns can be examined and reused without exposing client-specific business logic.
+
+## Automated Validation
+
+The current CI pipeline restores dependencies, builds both application layers, and executes automated tests on every push and pull request to `main`.
+
+Current coverage includes project-search filtering, pagination and sorting; project-detail loading and persistence; Angular HTTP contracts; editor form loading; required-field validation; Save and Cancel behavior; and load/save failure handling.
+
+## Planned Capabilities
+
+- Customer workflows
 - Authentication and role-based authorization
-- Structured logging
-- Automated tests
+- Structured logging and centralized API error handling
+- Additional integration and end-to-end testing
 - PDF/reporting examples
 - Optional Electron desktop integration
 - AI-assisted engineering documentation and workflow examples
-
-## First Reference Feature
-
-The first end-to-end feature will be **Project Search**.
-
-It will demonstrate a realistic enterprise workflow with:
-
-1. An Angular search/grid interface.
-2. A typed paged-search request.
-3. An ASP.NET Core API endpoint.
-4. A service layer responsible for query composition.
-5. EF Core filtering, sorting, and pagination.
-6. SQL Server persistence.
-7. A typed paged response returned to the client.
-
-The implementation will be intentionally generic so the architectural patterns can be examined and reused without exposing client-specific business logic.
 
 ## Engineering Principles
 
@@ -108,7 +137,7 @@ AI-generated or AI-assisted changes remain subject to normal engineering review.
 
 ## Status
 
-🚧 **Under active development** — the repository is being built incrementally so architectural decisions and implementation patterns remain easy to follow.
+🚧 **Under active development** — Project Search and Project Editor are implemented and covered by automated CI validation. Additional enterprise capabilities are being added incrementally so architectural decisions and implementation patterns remain easy to follow.
 
 ## Author
 
