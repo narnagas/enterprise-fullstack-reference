@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef, GridReadyEvent, SortChangedEvent } from 'ag-grid-community';
+import { ColDef, GridReadyEvent, RowClickedEvent, SortChangedEvent } from 'ag-grid-community';
 import { finalize } from 'rxjs';
+import { ProjectEditorComponent } from './project-editor.component';
 import { ProjectSearchRequest, ProjectSummary } from './project.models';
 import { ProjectService } from './project.service';
 
 @Component({
   selector: 'app-project-search',
   standalone: true,
-  imports: [FormsModule, AgGridAngular],
+  imports: [FormsModule, AgGridAngular, ProjectEditorComponent],
   templateUrl: './project-search.component.html',
   styleUrl: './project-search.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -25,6 +26,7 @@ export class ProjectSearchComponent implements OnInit {
   totalPages = 0;
   loading = false;
   error = '';
+  selectedProjectId: number | null = null;
   rowData: ProjectSummary[] = [];
   sortField = 'createdDate';
   sortDirection: 'asc' | 'desc' = 'desc';
@@ -39,24 +41,13 @@ export class ProjectSearchComponent implements OnInit {
     { field: 'isActive', headerName: 'Active', sortable: false, valueFormatter: p => p.value ? 'Yes' : 'No' }
   ];
 
-  readonly defaultColDef: ColDef = {
-    resizable: true,
-    minWidth: 110
-  };
+  readonly defaultColDef: ColDef = { resizable: true, minWidth: 110 };
 
-  constructor(
-    private readonly projectService: ProjectService,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
+  constructor(private readonly projectService: ProjectService, private readonly cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
-    this.loadProjects();
-  }
-
-  onSearch(): void {
-    this.pageNumber = 1;
-    this.loadProjects();
-  }
+  ngOnInit(): void { this.loadProjects(); }
+  onSearch(): void { this.pageNumber = 1; this.loadProjects(); }
+  onPageSizeChange(): void { this.pageNumber = 1; this.loadProjects(); }
 
   onReset(): void {
     this.searchText = '';
@@ -66,32 +57,23 @@ export class ProjectSearchComponent implements OnInit {
     this.pageNumber = 1;
     this.sortField = 'createdDate';
     this.sortDirection = 'desc';
+    this.selectedProjectId = null;
     this.loadProjects();
   }
 
-  onPageSizeChange(): void {
-    this.pageNumber = 1;
-    this.loadProjects();
-  }
-
-  previousPage(): void {
-    if (this.pageNumber <= 1) return;
-    this.pageNumber--;
-    this.loadProjects();
-  }
-
-  nextPage(): void {
-    if (this.pageNumber >= this.totalPages) return;
-    this.pageNumber++;
-    this.loadProjects();
-  }
-
+  previousPage(): void { if (this.pageNumber > 1) { this.pageNumber--; this.loadProjects(); } }
+  nextPage(): void { if (this.pageNumber < this.totalPages) { this.pageNumber++; this.loadProjects(); } }
   onGridReady(_: GridReadyEvent<ProjectSummary>): void {}
+
+  onRowClicked(event: RowClickedEvent<ProjectSummary>): void {
+    this.selectedProjectId = event.data?.id ?? null;
+  }
+
+  onProjectSaved(): void { this.loadProjects(); }
 
   onSortChanged(event: SortChangedEvent<ProjectSummary>): void {
     const sorted = event.api.getColumnState().find(column => column.sort);
     if (!sorted?.colId || !sorted.sort) return;
-
     this.sortField = sorted.colId;
     this.sortDirection = sorted.sort;
     this.pageNumber = 1;
@@ -101,7 +83,6 @@ export class ProjectSearchComponent implements OnInit {
   private loadProjects(): void {
     this.loading = true;
     this.error = '';
-
     const request: ProjectSearchRequest = {
       pageNumber: this.pageNumber,
       pageSize: this.pageSize,
@@ -114,10 +95,7 @@ export class ProjectSearchComponent implements OnInit {
     };
 
     this.projectService.search(request)
-      .pipe(finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      }))
+      .pipe(finalize(() => { this.loading = false; this.cdr.markForCheck(); }))
       .subscribe({
         next: response => {
           this.rowData = response.items;

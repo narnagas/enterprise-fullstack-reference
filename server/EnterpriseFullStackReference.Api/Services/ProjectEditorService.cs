@@ -11,7 +11,15 @@ public sealed class ProjectEditorService(ApplicationDbContext dbContext) : IProj
         return await dbContext.Projects
             .AsNoTracking()
             .Where(x => x.Id == id)
-            .Select(x => ToDetail(x.Id, x.ProjectNumber, x.Name, x.CustomerName, x.Status, x.CreatedDate, x.DueDate, x.IsActive))
+            .Select(x => new ProjectDetailDto(
+                x.Id,
+                x.ProjectNumber,
+                x.Name,
+                x.CustomerName,
+                x.Status,
+                x.CreatedDate,
+                x.DueDate,
+                x.IsActive))
             .SingleOrDefaultAsync(cancellationToken);
     }
 
@@ -28,17 +36,14 @@ public sealed class ProjectEditorService(ApplicationDbContext dbContext) : IProj
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return ToDetail(project.Id, project.ProjectNumber, project.Name, project.CustomerName, project.Status, project.CreatedDate, project.DueDate, project.IsActive);
+        return new ProjectDetailDto(
+            project.Id,
+            project.ProjectNumber,
+            project.Name,
+            project.CustomerName,
+            project.Status,
+            project.CreatedDate,
+            project.DueDate,
+            project.IsActive);
     }
-
-    private static ProjectDetailDto ToDetail(
-        int id,
-        string projectNumber,
-        string name,
-        string customerName,
-        string status,
-        DateTime createdDate,
-        DateTime? dueDate,
-        bool isActive) =>
-        new(id, projectNumber, name, customerName, status, createdDate, dueDate, isActive);
 }

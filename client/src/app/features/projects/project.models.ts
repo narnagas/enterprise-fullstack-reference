@@ -9,6 +9,16 @@ export interface ProjectSummary {
   isActive: boolean;
 }
 
+export interface ProjectDetail extends ProjectSummary {}
+
+export interface UpdateProjectRequest {
+  name: string;
+  customerName: string;
+  status: string;
+  dueDate: string | null;
+  isActive: boolean;
+}
+
 export interface ProjectSearchRequest {
   pageNumber: number;
   pageSize: number;

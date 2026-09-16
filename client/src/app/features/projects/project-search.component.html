@@ -1,34 +1,13 @@
 <section class="card">
   <div class="toolbar">
-    <label>
-      Search
-      <input [(ngModel)]="searchText" (keyup.enter)="onSearch()" placeholder="Project number or name">
-    </label>
-    <label>
-      Customer
-      <input [(ngModel)]="customer" (keyup.enter)="onSearch()" placeholder="Customer name">
-    </label>
-    <label>
-      Status
-      <input [(ngModel)]="status" (keyup.enter)="onSearch()" placeholder="Status">
-    </label>
-    <label>
-      Visibility
-      <select [(ngModel)]="activeFilter">
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-        <option value="all">All</option>
-      </select>
-    </label>
-    <div class="actions">
-      <button type="button" class="primary" (click)="onSearch()">Search</button>
-      <button type="button" (click)="onReset()">Reset</button>
-    </div>
+    <label>Search<input [(ngModel)]="searchText" (keyup.enter)="onSearch()" placeholder="Project number or name"></label>
+    <label>Customer<input [(ngModel)]="customer" (keyup.enter)="onSearch()" placeholder="Customer name"></label>
+    <label>Status<input [(ngModel)]="status" (keyup.enter)="onSearch()" placeholder="Status"></label>
+    <label>Visibility<select [(ngModel)]="activeFilter"><option value="active">Active</option><option value="inactive">Inactive</option><option value="all">All</option></select></label>
+    <div class="actions"><button type="button" class="primary" (click)="onSearch()">Search</button><button type="button" (click)="onReset()">Reset</button></div>
   </div>
 
-  @if (error) {
-    <div class="error" role="alert">{{ error }}</div>
-  }
+  @if (error) { <div class="error" role="alert">{{ error }}</div> }
 
   <div class="grid-wrap" [class.loading]="loading">
     <ag-grid-angular
@@ -38,7 +17,9 @@
       [defaultColDef]="defaultColDef"
       [animateRows]="true"
       [suppressMultiSort]="true"
+      [rowSelection]="'single'"
       (gridReady)="onGridReady($event)"
+      (rowClicked)="onRowClicked($event)"
       (sortChanged)="onSortChanged($event)">
     </ag-grid-angular>
     @if (loading) { <div class="loading-mask">Loading projects…</div> }
@@ -47,18 +28,12 @@
   <footer class="pager">
     <span>{{ totalCount }} project{{ totalCount === 1 ? '' : 's' }}</span>
     <div>
-      <label>
-        Rows
-        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
-          <option [ngValue]="10">10</option>
-          <option [ngValue]="25">25</option>
-          <option [ngValue]="50">50</option>
-          <option [ngValue]="100">100</option>
-        </select>
-      </label>
+      <label>Rows<select [(ngModel)]="pageSize" (change)="onPageSizeChange()"><option [ngValue]="10">10</option><option [ngValue]="25">25</option><option [ngValue]="50">50</option><option [ngValue]="100">100</option></select></label>
       <button type="button" (click)="previousPage()" [disabled]="pageNumber <= 1 || loading">Previous</button>
       <span>Page {{ pageNumber }} of {{ totalPages || 1 }}</span>
       <button type="button" (click)="nextPage()" [disabled]="pageNumber >= totalPages || loading">Next</button>
     </div>
   </footer>
 </section>
+
+<app-project-editor [projectId]="selectedProjectId" (saved)="onProjectSaved()" />
