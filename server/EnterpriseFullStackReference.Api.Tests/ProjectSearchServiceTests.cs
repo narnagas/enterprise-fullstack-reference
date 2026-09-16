@@ -3,6 +3,7 @@ using EnterpriseFullStackReference.Api.Data;
 using EnterpriseFullStackReference.Api.Models;
 using EnterpriseFullStackReference.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 
 namespace EnterpriseFullStackReference.Api.Tests;
 
