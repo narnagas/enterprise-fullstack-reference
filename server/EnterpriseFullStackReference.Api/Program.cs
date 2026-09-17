@@ -23,6 +23,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IProjectSearchService, ProjectSearchService>();
 builder.Services.AddScoped<IProjectEditorService, ProjectEditorService>();
 builder.Services.AddScoped<ICustomerSearchService, CustomerSearchService>();
+builder.Services.AddScoped<ICustomerEditorService, CustomerEditorService>();
 
 var app = builder.Build();
 
