@@ -1,51 +1,22 @@
 <section class="editor-card">
-  <header>
-    <div>
-      <p class="eyebrow">Project Editor</p>
-      <h2>{{ project?.projectNumber || 'Select a project' }}</h2>
-    </div>
-    @if (project) { <span class="created">Created {{ project.createdDate.substring(0, 10) }}</span> }
-  </header>
-
-  @if (!project && !loading && !error) {
-    <p class="empty">Select a row in the project grid to view and edit its details.</p>
-  }
-
+  <header><div><p class="eyebrow">Project Editor</p><h2>{{ project?.projectNumber || 'Select a project' }}</h2></div>@if (project) { <span class="created">Created {{ project.createdDate.substring(0, 10) }}</span> }</header>
+  @if (!project && !loading && !error) { <p class="empty">Select a row in the project grid to view and edit its details.</p> }
   @if (loading) { <p class="empty">Loading project…</p> }
   @if (error) { <div class="message error" role="alert">{{ error }}</div> }
   @if (success) { <div class="message success" role="status">{{ success }}</div> }
-
   @if (project) {
+    @if (!auth.canEdit()) { <div class="message" role="status">Viewer access is read-only. Select Editor or Administrator to modify this project.</div> }
     <form [formGroup]="form" (ngSubmit)="save()">
-      <div class="fields">
-        <label>
-          Project Name
-          <input formControlName="name" maxlength="150">
-          @if (form.controls.name.touched && form.controls.name.invalid) { <small>Project name is required.</small> }
-        </label>
-        <label>
-          Customer
-          <input formControlName="customerName" maxlength="150">
-          @if (form.controls.customerName.touched && form.controls.customerName.invalid) { <small>Customer is required.</small> }
-        </label>
-        <label>
-          Status
-          <input formControlName="status" maxlength="50">
-          @if (form.controls.status.touched && form.controls.status.invalid) { <small>Status is required.</small> }
-        </label>
-        <label>
-          Due Date
-          <input type="date" formControlName="dueDate">
-        </label>
-        <label class="active-field">
-          <input type="checkbox" formControlName="isActive">
-          Active project
-        </label>
-      </div>
-      <div class="actions">
-        <button type="submit" class="primary" [disabled]="saving || form.invalid">{{ saving ? 'Saving…' : 'Save' }}</button>
-        <button type="button" (click)="cancel()" [disabled]="saving || !form.dirty">Cancel</button>
-      </div>
+      <fieldset [disabled]="!auth.canEdit() || saving" style="border:0;padding:0;margin:0;min-width:0">
+        <div class="fields">
+          <label>Project Name<input formControlName="name" maxlength="150">@if (form.controls.name.touched && form.controls.name.invalid) { <small>Project name is required.</small> }</label>
+          <label>Customer<input formControlName="customerName" maxlength="150">@if (form.controls.customerName.touched && form.controls.customerName.invalid) { <small>Customer is required.</small> }</label>
+          <label>Status<input formControlName="status" maxlength="50">@if (form.controls.status.touched && form.controls.status.invalid) { <small>Status is required.</small> }</label>
+          <label>Due Date<input type="date" formControlName="dueDate"></label>
+          <label class="active-field"><input type="checkbox" formControlName="isActive">Active project</label>
+        </div>
+      </fieldset>
+      <div class="actions"><button type="submit" class="primary" [disabled]="!auth.canEdit() || saving || form.invalid">{{ saving ? 'Saving…' : 'Save' }}</button><button type="button" (click)="cancel()" [disabled]="saving || !form.dirty">Cancel</button></div>
     </form>
   }
 </section>
