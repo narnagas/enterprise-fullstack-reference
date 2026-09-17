@@ -48,13 +48,15 @@ enterprise-fullstack-reference/
 ## Implemented Capabilities
 
 - Angular 19 standalone application architecture
+- Routed Projects and Customers workspaces
 - Typed Angular HTTP services and reactive forms
-- AG Grid project search interface
+- AG Grid project and customer search interfaces
 - ASP.NET Core / .NET 9 REST APIs
 - Entity Framework Core data access
-- SQL Server persistence and sample scripts
+- SQL Server persistence and sanitized sample scripts
 - Server-side pagination, filtering, and sorting
 - Project search and project editing workflows
+- Customer search and customer editing workflows
 - DTO-based API contracts
 - Dependency injection and service-layer separation
 - Client and server validation
@@ -64,42 +66,50 @@ enterprise-fullstack-reference/
 
 ## Current Reference Features
 
-### Project Search
+### Application Navigation
 
-The Project Search workflow demonstrates a scalable enterprise search pattern:
+The Angular application shell separates the reference workflows into routed workspaces:
+
+- `/projects` — project search, selection, editing, save, and refresh.
+- `/customers` — customer search, selection, editing, save, and refresh.
+
+The root route and unknown routes redirect to Projects. Active navigation state makes the current workspace explicit while keeping feature components isolated from the application shell.
+
+### Project Search and Editor
+
+The Project workflow demonstrates a scalable enterprise search-and-edit pattern:
 
 1. Angular search and AG Grid presentation.
-2. A typed `ProjectSearchRequest` contract.
-3. `POST /api/projects/search`.
-4. A testable `ProjectSearchService` responsible for query composition.
-5. EF Core filtering, sorting, and server-side pagination.
-6. SQL Server persistence.
-7. A typed `PagedResponse<ProjectSummaryDto>` returned to the client.
+2. Typed `ProjectSearchRequest` and paged response contracts.
+3. `POST /api/projects/search` with EF Core filtering, sorting, and server-side pagination.
+4. Row selection loads `GET /api/projects/{id}`.
+5. A standalone reactive-form editor validates editable fields.
+6. `PUT /api/projects/{id}` persists a typed `UpdateProjectRequest` through `ProjectEditorService`.
+7. Save success refreshes the search grid; failed saves preserve the user's edits.
 
-### Project Editor
+### Customer Search and Editor
 
-Selecting a project from the search grid opens a standalone Angular reactive-form editor. The editor demonstrates:
+The Customer workflow applies the same architectural pattern to a second domain area rather than coupling customer behavior to the Project feature:
 
-1. `GET /api/projects/{id}` for loading project details.
-2. A typed `ProjectDetailDto` / `ProjectDetail` contract across the API boundary.
-3. Required-field and maximum-length validation.
-4. Explicit Save and Cancel behavior.
-5. `PUT /api/projects/{id}` with a typed `UpdateProjectRequest`.
-6. Persistence through a dedicated `ProjectEditorService` and EF Core.
-7. Loading, success, validation, and API failure states.
-8. Refreshing the search grid after a successful update.
+1. Free-text customer search across customer number, company, contact, email, and city.
+2. State and active/inactive filtering.
+3. Server-side sorting and pagination through `POST /api/customers/search`.
+4. AG Grid row selection loads `GET /api/customers/{id}`.
+5. A standalone Customer Editor uses Angular Reactive Forms for Company, Contact, Email, Phone, City, State, and Active status.
+6. Client and API validation protect the update boundary.
+7. `PUT /api/customers/{id}` persists changes through a dedicated `CustomerEditorService`.
+8. Save and Cancel behavior, loading/error states, and automatic grid refresh mirror the Project workflow.
 
 The implementation remains intentionally generic so the architectural patterns can be examined and reused without exposing client-specific business logic.
 
 ## Automated Validation
 
-The current CI pipeline restores dependencies, builds both application layers, and executes automated tests on every push and pull request to `main`.
+The CI pipeline restores dependencies, builds both application layers, and executes automated tests on every push and pull request to `main`.
 
-Current coverage includes project-search filtering, pagination and sorting; project-detail loading and persistence; Angular HTTP contracts; editor form loading; required-field validation; Save and Cancel behavior; and load/save failure handling.
+Current coverage includes project and customer search filtering, pagination and sorting; detail loading and persistence; Angular HTTP contracts; reactive-form loading and validation; Save and Cancel behavior; not-found handling; and load/save failure handling.
 
 ## Planned Capabilities
 
-- Customer workflows
 - Authentication and role-based authorization
 - Structured logging and centralized API error handling
 - Additional integration and end-to-end testing
@@ -137,7 +147,7 @@ AI-generated or AI-assisted changes remain subject to normal engineering review.
 
 ## Status
 
-🚧 **Under active development** — Project Search and Project Editor are implemented and covered by automated CI validation. Additional enterprise capabilities are being added incrementally so architectural decisions and implementation patterns remain easy to follow.
+🚧 **Under active development** — Projects and Customers now have complete routed Search → Select → Load → Edit → Save → Refresh workflows covered by automated CI validation. Additional enterprise capabilities are being added incrementally so architectural decisions and implementation patterns remain easy to follow.
 
 ## Author
 
