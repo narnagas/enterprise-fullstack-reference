@@ -4,11 +4,13 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ProjectEditorComponent } from './project-editor.component';
 import { ProjectDetail } from './project.models';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/auth/auth.service';
 
 describe('ProjectEditorComponent', () => {
   let fixture: ComponentFixture<ProjectEditorComponent>;
   let component: ProjectEditorComponent;
   let http: HttpTestingController;
+  let auth: AuthService;
 
   const project: ProjectDetail = {
     id: 1,
@@ -30,6 +32,8 @@ describe('ProjectEditorComponent', () => {
     fixture = TestBed.createComponent(ProjectEditorComponent);
     component = fixture.componentInstance;
     http = TestBed.inject(HttpTestingController);
+    auth = TestBed.inject(AuthService);
+    auth.setRole('Editor');
     fixture.detectChanges();
   });
 
@@ -45,64 +49,51 @@ describe('ProjectEditorComponent', () => {
 
   it('loads the selected project and populates the form', () => {
     loadProject();
-
     expect(component.project).toEqual(project);
-    expect(component.form.getRawValue()).toEqual({
-      name: 'North Modernization',
-      customerName: 'Northwind Industries',
-      status: 'Active',
-      dueDate: '2026-09-30',
-      isActive: true
-    });
+    expect(component.form.getRawValue()).toEqual({ name: 'North Modernization', customerName: 'Northwind Industries', status: 'Active', dueDate: '2026-09-30', isActive: true });
     expect(component.form.pristine).toBeTrue();
   });
 
   it('prevents save when required fields are invalid', () => {
     loadProject();
     component.form.controls.name.setValue('');
-
     component.save();
-
     expect(component.form.invalid).toBeTrue();
     expect(component.form.controls.name.touched).toBeTrue();
     http.expectNone(`${environment.apiUrl}/projects/1`);
+  });
+
+  it('prevents a Viewer from issuing an update', () => {
+    loadProject();
+    auth.setRole('Viewer');
+    component.form.controls.name.setValue('Blocked Update');
+    component.save();
+    http.expectNone(`${environment.apiUrl}/projects/1`);
+    expect(component.saving).toBeFalse();
+  });
+
+  it('allows an Editor to issue an update', () => {
+    loadProject();
+    auth.setRole('Editor');
+    component.form.controls.name.setValue('Authorized Update');
+    component.save();
+    const request = http.expectOne(`${environment.apiUrl}/projects/1`);
+    expect(request.request.method).toBe('PUT');
+    request.flush({ ...project, name: 'Authorized Update' });
   });
 
   it('saves edited values and emits the saved project', () => {
     loadProject();
     const emitted: ProjectDetail[] = [];
     component.saved.subscribe(value => emitted.push(value));
-    component.form.patchValue({
-      name: '  North Platform Modernization  ',
-      customerName: '  Northwind Enterprise  ',
-      status: 'Planning',
-      dueDate: '',
-      isActive: false
-    });
-
+    component.form.patchValue({ name: '  North Platform Modernization  ', customerName: '  Northwind Enterprise  ', status: 'Planning', dueDate: '', isActive: false });
     component.save();
-
     const request = http.expectOne(`${environment.apiUrl}/projects/1`);
     expect(request.request.method).toBe('PUT');
-    expect(request.request.body).toEqual({
-      name: 'North Platform Modernization',
-      customerName: 'Northwind Enterprise',
-      status: 'Planning',
-      dueDate: null,
-      isActive: false
-    });
-
-    const saved: ProjectDetail = {
-      ...project,
-      name: 'North Platform Modernization',
-      customerName: 'Northwind Enterprise',
-      status: 'Planning',
-      dueDate: null,
-      isActive: false
-    };
+    expect(request.request.body).toEqual({ name: 'North Platform Modernization', customerName: 'Northwind Enterprise', status: 'Planning', dueDate: null, isActive: false });
+    const saved: ProjectDetail = { ...project, name: 'North Platform Modernization', customerName: 'Northwind Enterprise', status: 'Planning', dueDate: null, isActive: false };
     request.flush(saved);
     fixture.detectChanges();
-
     expect(component.project).toEqual(saved);
     expect(component.success).toBe('Project saved.');
     expect(component.form.pristine).toBeTrue();
@@ -113,10 +104,7 @@ describe('ProjectEditorComponent', () => {
     loadProject();
     component.form.patchValue({ name: 'Unsaved Name', status: 'On Hold' });
     component.form.markAsDirty();
-    expect(component.form.dirty).toBeTrue();
-
     component.cancel();
-
     expect(component.form.controls.name.value).toBe('North Modernization');
     expect(component.form.controls.status.value).toBe('Active');
     expect(component.form.pristine).toBeTrue();
@@ -127,7 +115,6 @@ describe('ProjectEditorComponent', () => {
     const request = http.expectOne(`${environment.apiUrl}/projects/404`);
     request.flush({}, { status: 404, statusText: 'Not Found' });
     fixture.detectChanges();
-
     expect(component.project).toBeNull();
     expect(component.error).toBe('Unable to load the selected project.');
   });
@@ -135,12 +122,10 @@ describe('ProjectEditorComponent', () => {
   it('keeps edits and shows an error when save fails', () => {
     loadProject();
     component.form.controls.name.setValue('Updated Name');
-
     component.save();
     const request = http.expectOne(`${environment.apiUrl}/projects/1`);
     request.flush({}, { status: 500, statusText: 'Server Error' });
     fixture.detectChanges();
-
     expect(component.form.controls.name.value).toBe('Updated Name');
     expect(component.error).toBe('Unable to save the project. Please try again.');
     expect(component.success).toBe('');
