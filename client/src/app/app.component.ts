@@ -1,18 +1,20 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { CustomerSearchComponent } from './features/customers/customer-search.component';
 import { ProjectSearchComponent } from './features/projects/project-search.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [ProjectSearchComponent],
+  imports: [ProjectSearchComponent, CustomerSearchComponent],
   template: `
     <main class="shell">
       <header>
         <p class="eyebrow">Enterprise Full-Stack Reference</p>
         <h1>Project Operations</h1>
-        <p>Angular client backed by an ASP.NET Core paged-search API.</p>
+        <p>Angular client backed by ASP.NET Core APIs for project and customer workflows.</p>
       </header>
       <app-project-search />
+      <app-customer-search />
     </main>
   `,
   styles: [`
