@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/auth/auth.service';
 import { CustomerDetail } from './customer.models';
 import { CustomerEditorComponent } from './customer-editor.component';
 
@@ -9,28 +10,17 @@ describe('CustomerEditorComponent', () => {
   let fixture: ComponentFixture<CustomerEditorComponent>;
   let component: CustomerEditorComponent;
   let http: HttpTestingController;
+  let auth: AuthService;
 
-  const customer: CustomerDetail = {
-    id: 1,
-    customerNumber: 'CUST-1001',
-    companyName: 'Northwind Industries',
-    contactName: 'Avery Stone',
-    email: 'avery@example.test',
-    phone: '713-555-0101',
-    city: 'Houston',
-    state: 'TX',
-    createdDate: '2026-08-01T00:00:00Z',
-    isActive: true
-  };
+  const customer: CustomerDetail = { id: 1, customerNumber: 'CUST-1001', companyName: 'Northwind Industries', contactName: 'Avery Stone', email: 'avery@example.test', phone: '713-555-0101', city: 'Houston', state: 'TX', createdDate: '2026-08-01T00:00:00Z', isActive: true };
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [CustomerEditorComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()]
-    }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [CustomerEditorComponent], providers: [provideHttpClient(), provideHttpClientTesting()] }).compileComponents();
     fixture = TestBed.createComponent(CustomerEditorComponent);
     component = fixture.componentInstance;
     http = TestBed.inject(HttpTestingController);
+    auth = TestBed.inject(AuthService);
+    auth.setRole('Editor');
     fixture.detectChanges();
   });
 
@@ -60,20 +50,37 @@ describe('CustomerEditorComponent', () => {
     http.expectNone(`${environment.apiUrl}/customers/1`);
   });
 
+  it('prevents a Viewer from issuing an update', () => {
+    loadCustomer();
+    auth.setRole('Viewer');
+    component.form.controls.companyName.setValue('Blocked Update');
+    component.save();
+    http.expectNone(`${environment.apiUrl}/customers/1`);
+    expect(component.saving).toBeFalse();
+  });
+
+  it('allows an Administrator to issue an update', () => {
+    loadCustomer();
+    auth.setRole('Administrator');
+    component.form.controls.companyName.setValue('Authorized Update');
+    component.save();
+    const request = http.expectOne(`${environment.apiUrl}/customers/1`);
+    expect(request.request.method).toBe('PUT');
+    request.flush({ ...customer, companyName: 'Authorized Update' });
+  });
+
   it('saves trimmed edits and emits the saved customer', () => {
     loadCustomer();
     const emitted: CustomerDetail[] = [];
     component.saved.subscribe(value => emitted.push(value));
     component.form.patchValue({ companyName: ' Northwind Enterprise ', contactName: ' Taylor Brooks ', email: 'taylor@example.test', isActive: false });
     component.save();
-
     const request = http.expectOne(`${environment.apiUrl}/customers/1`);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body.companyName).toBe('Northwind Enterprise');
     expect(request.request.body.contactName).toBe('Taylor Brooks');
     expect(request.request.body.email).toBe('taylor@example.test');
     expect(request.request.body.isActive).toBeFalse();
-
     const saved = { ...customer, companyName: 'Northwind Enterprise', contactName: 'Taylor Brooks', email: 'taylor@example.test', isActive: false };
     request.flush(saved);
     fixture.detectChanges();
