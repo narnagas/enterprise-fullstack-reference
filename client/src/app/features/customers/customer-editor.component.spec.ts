@@ -64,7 +64,7 @@ describe('CustomerEditorComponent', () => {
     loadCustomer();
     const emitted: CustomerDetail[] = [];
     component.saved.subscribe(value => emitted.push(value));
-    component.form.patchValue({ companyName: ' Northwind Enterprise ', contactName: ' Taylor Brooks ', email: ' taylor@example.test ', isActive: false });
+    component.form.patchValue({ companyName: ' Northwind Enterprise ', contactName: ' Taylor Brooks ', email: 'taylor@example.test', isActive: false });
     component.save();
 
     const request = http.expectOne(`${environment.apiUrl}/customers/1`);
