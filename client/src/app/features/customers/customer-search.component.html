@@ -1,9 +1,6 @@
 <section class="card">
   <div class="section-heading">
-    <div>
-      <p class="eyebrow">Customer Directory</p>
-      <h2>Customer Search</h2>
-    </div>
+    <div><p class="eyebrow">Customer Directory</p><h2>Customer Search</h2></div>
     <span>Server-side filtering, sorting, and paging</span>
   </div>
 
@@ -17,16 +14,7 @@
   @if (error) { <div class="error" role="alert">{{ error }}</div> }
 
   <div class="grid-wrap">
-    <ag-grid-angular
-      class="ag-theme-quartz"
-      [rowData]="rowData"
-      [columnDefs]="columnDefs"
-      [defaultColDef]="defaultColDef"
-      [animateRows]="true"
-      [suppressMultiSort]="true"
-      (gridReady)="onGridReady($event)"
-      (sortChanged)="onSortChanged($event)">
-    </ag-grid-angular>
+    <ag-grid-angular class="ag-theme-quartz" [rowData]="rowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [animateRows]="true" [suppressMultiSort]="true" [rowSelection]="'single'" (gridReady)="onGridReady($event)" (sortChanged)="onSortChanged($event)" (rowClicked)="onRowClicked($event)"></ag-grid-angular>
     @if (loading) { <div class="loading-mask">Loading customers…</div> }
   </div>
 
@@ -40,3 +28,5 @@
     </div>
   </footer>
 </section>
+
+<app-customer-editor [customerId]="selectedCustomerId" (saved)="onCustomerSaved()" />

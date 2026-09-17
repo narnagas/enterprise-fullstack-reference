@@ -1,0 +1,32 @@
+<section class="editor-card">
+  <header>
+    <div>
+      <p class="eyebrow">Customer Editor</p>
+      <h2>{{ customer?.customerNumber || 'Select a customer' }}</h2>
+    </div>
+    @if (customer) { <span class="created">Created {{ customer.createdDate.substring(0, 10) }}</span> }
+  </header>
+
+  @if (!customer && !loading && !error) { <p class="empty">Select a row in the customer grid to view and edit its details.</p> }
+  @if (loading) { <p class="empty">Loading customer…</p> }
+  @if (error) { <div class="message error" role="alert">{{ error }}</div> }
+  @if (success) { <div class="message success" role="status">{{ success }}</div> }
+
+  @if (customer) {
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="fields">
+        <label>Company<input formControlName="companyName" maxlength="150">@if (form.controls.companyName.touched && form.controls.companyName.invalid) { <small>Company name is required.</small> }</label>
+        <label>Contact<input formControlName="contactName" maxlength="150"></label>
+        <label>Email<input type="email" formControlName="email" maxlength="200">@if (form.controls.email.touched && form.controls.email.hasError('email')) { <small>Enter a valid email address.</small> }</label>
+        <label>Phone<input formControlName="phone" maxlength="50"></label>
+        <label>City<input formControlName="city" maxlength="100"></label>
+        <label>State<input formControlName="state" maxlength="50"></label>
+        <label class="active-field"><input type="checkbox" formControlName="isActive">Active customer</label>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary" [disabled]="saving || form.invalid">{{ saving ? 'Saving…' : 'Save' }}</button>
+        <button type="button" (click)="cancel()" [disabled]="saving || !form.dirty">Cancel</button>
+      </div>
+    </form>
+  }
+</section>

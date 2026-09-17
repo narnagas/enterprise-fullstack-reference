@@ -11,6 +11,8 @@ export interface CustomerSummary {
   isActive: boolean;
 }
 
+export interface CustomerDetail extends CustomerSummary {}
+
 export interface CustomerSearchRequest {
   pageNumber: number;
   pageSize: number;
@@ -19,4 +21,14 @@ export interface CustomerSearchRequest {
   isActive: boolean | null;
   sortField: string;
   sortDirection: 'asc' | 'desc';
+}
+
+export interface UpdateCustomerRequest {
+  companyName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  city: string;
+  state: string;
+  isActive: boolean;
 }

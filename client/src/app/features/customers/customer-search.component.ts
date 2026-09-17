@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef, GridApi, GridReadyEvent, SortChangedEvent } from 'ag-grid-community';
+import { ColDef, GridApi, GridReadyEvent, RowClickedEvent, SortChangedEvent } from 'ag-grid-community';
 import { finalize } from 'rxjs';
+import { CustomerEditorComponent } from './customer-editor.component';
 import { CustomerSearchRequest, CustomerSummary } from './customer.models';
 import { CustomerService } from './customer.service';
 
 @Component({
   selector: 'app-customer-search',
   standalone: true,
-  imports: [FormsModule, AgGridAngular],
+  imports: [FormsModule, AgGridAngular, CustomerEditorComponent],
   templateUrl: './customer-search.component.html',
   styleUrl: './customer-search.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -25,6 +26,7 @@ export class CustomerSearchComponent implements OnInit {
   loading = false;
   error = '';
   rowData: CustomerSummary[] = [];
+  selectedCustomerId: number | null = null;
   private gridApi?: GridApi<CustomerSummary>;
   private sortField = 'companyName';
   private sortDirection: 'asc' | 'desc' = 'asc';
@@ -40,40 +42,26 @@ export class CustomerSearchComponent implements OnInit {
     { field: 'isActive', headerName: 'Active', width: 100, valueFormatter: p => p.value ? 'Yes' : 'No' }
   ];
 
-  readonly defaultColDef: ColDef<CustomerSummary> = {
-    resizable: true,
-    suppressHeaderMenuButton: true
-  };
+  readonly defaultColDef: ColDef<CustomerSummary> = { resizable: true, suppressHeaderMenuButton: true };
 
-  constructor(
-    private readonly customerService: CustomerService,
-    private readonly cdr: ChangeDetectorRef
-  ) {}
+  constructor(private readonly customerService: CustomerService, private readonly cdr: ChangeDetectorRef) {}
 
-  ngOnInit(): void {
-    this.load();
-  }
+  ngOnInit(): void { this.load(); }
+  onGridReady(event: GridReadyEvent<CustomerSummary>): void { this.gridApi = event.api; }
+  onRowClicked(event: RowClickedEvent<CustomerSummary>): void { this.selectedCustomerId = event.data?.id ?? null; }
+  onCustomerSaved(): void { this.load(); }
 
-  onGridReady(event: GridReadyEvent<CustomerSummary>): void {
-    this.gridApi = event.api;
-  }
-
-  onSearch(): void {
-    this.pageNumber = 1;
-    this.load();
-  }
+  onSearch(): void { this.pageNumber = 1; this.load(); }
 
   onReset(): void {
     this.searchText = '';
     this.state = '';
     this.activeFilter = 'active';
     this.pageNumber = 1;
+    this.selectedCustomerId = null;
     this.sortField = 'companyName';
     this.sortDirection = 'asc';
-    this.gridApi?.applyColumnState({
-      defaultState: { sort: null },
-      state: [{ colId: 'companyName', sort: 'asc' }]
-    });
+    this.gridApi?.applyColumnState({ defaultState: { sort: null }, state: [{ colId: 'companyName', sort: 'asc' }] });
     this.load();
   }
 
@@ -86,27 +74,13 @@ export class CustomerSearchComponent implements OnInit {
     this.load();
   }
 
-  previousPage(): void {
-    if (this.pageNumber <= 1 || this.loading) return;
-    this.pageNumber--;
-    this.load();
-  }
-
-  nextPage(): void {
-    if (this.pageNumber >= this.totalPages || this.loading) return;
-    this.pageNumber++;
-    this.load();
-  }
-
-  onPageSizeChange(): void {
-    this.pageNumber = 1;
-    this.load();
-  }
+  previousPage(): void { if (this.pageNumber > 1 && !this.loading) { this.pageNumber--; this.load(); } }
+  nextPage(): void { if (this.pageNumber < this.totalPages && !this.loading) { this.pageNumber++; this.load(); } }
+  onPageSizeChange(): void { this.pageNumber = 1; this.load(); }
 
   private load(): void {
     this.loading = true;
     this.error = '';
-
     const request: CustomerSearchRequest = {
       pageNumber: this.pageNumber,
       pageSize: this.pageSize,
@@ -118,10 +92,7 @@ export class CustomerSearchComponent implements OnInit {
     };
 
     this.customerService.search(request)
-      .pipe(finalize(() => {
-        this.loading = false;
-        this.cdr.markForCheck();
-      }))
+      .pipe(finalize(() => { this.loading = false; this.cdr.markForCheck(); }))
       .subscribe({
         next: response => {
           this.rowData = response.items;
